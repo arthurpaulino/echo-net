@@ -1,0 +1,42 @@
+name: Continuous Integration
+
+on:
+  push:
+    paths-ignore:
+      - "**/README.md"
+  pull_request:
+  workflow_dispatch:
+
+env:
+  CARGO_TERM_COLOR: always
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+jobs:
+  rust-checks:
+    name: Rust Checks
+    runs-on: ubuntu-latest
+    env:
+      ECHONET_WIFI_SSID: "some-wifi-ssid"
+      ECHONET_WIFI_PASSWORD: "some-wifi-password"
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Rust
+        uses: esp-rs/xtensa-toolchain@v1.5
+        with:
+          default: true
+          buildtargets: esp32
+          ldproxy: true
+
+      - name: Enable caching
+        uses: Swatinem/rust-cache@v2
+
+      - name: Format Check
+        run: cargo fmt --all -- --check --color always
+
+      - name: Clippy Linting
+        run: cargo clippy --all-targets --all-features --workspace -- -D warnings
+
+      - name: Build
+        run: cargo build --release
