@@ -24,8 +24,18 @@ experimental = ["esp-idf-svc/experimental"]
 
 [dependencies]
 log = "0.4"
-esp-idf-svc = "0.51"
-heapless = "0.8"
+esp-idf-svc = "0.52"
+heapless = "0.9"
 
 [build-dependencies]
 embuild = "0.33"
+
+# TODO: remove once ESP-IDF v6 support is released on crates.io.
+# esp-idf-{svc,sys,hal}: v6.0 compatibility is only on master (see esp-idf-svc CHANGELOG "Unreleased").
+# embuild: v6 `tools.json` has a `win-arm64` platform unknown to <= 0.33.1
+# (https://github.com/esp-rs/embuild/issues/105).
+[patch.crates-io]
+esp-idf-svc = { git = "https://github.com/esp-rs/esp-idf-svc", rev = "b1c8938751045e82a08bead0b123aa4cf138d147" }
+esp-idf-sys = { git = "https://github.com/esp-rs/esp-idf-sys", rev = "eaf69b2ae2a3b0816346c51ea326634b5d3dc88b" }
+esp-idf-hal = { git = "https://github.com/esp-rs/esp-idf-hal", rev = "24e99b865a0ffc87dcb4f4142fb06daeb9481c89" }
+embuild = { git = "https://github.com/esp-rs/embuild", rev = "d5f79aefa6913cb6ec9f9d4add24e946ad0bb4db" }

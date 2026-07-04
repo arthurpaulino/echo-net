@@ -5,7 +5,7 @@ use esp_idf_svc::{
         delay::FreeRtos,
         gpio::{Gpio2, Output, PinDriver},
         modem::WifiModem,
-        prelude::Peripherals,
+        peripherals::Peripherals,
     },
     sys::{err_enum_t_ERR_OK, nvs_flash_init},
     systime::EspSystemTime,
@@ -25,12 +25,14 @@ const SSID: &str = env!("ECHONET_WIFI_SSID");
 const PASSWORD: &str = env!("ECHONET_WIFI_PASSWORD");
 
 // Producer constants
-const NUM_CONTIGUOUS_READS: usize = 20000;
+// Must stay well below the task watchdog window (5s): reads run at roughly
+// 3.6k/s on ESP-IDF v6, so 5000 reads ≈ 1.4s between yields to IDLE0
+const NUM_CONTIGUOUS_READS: usize = 5000;
 const DELAY_BETWEEN_CONTIGUOUS_READS: u32 = 10;
 
 // Consumer constants
 const HEAP_PERCENTILE: usize = 5;
-const HEAP_CAPACITY: usize = 18000;
+const HEAP_CAPACITY: usize = 8192;
 const MAX_RAW: usize = 950;
 const SEND_INTERVAL: Duration = Duration::from_millis(1000);
 const MULTICAST_ADDR: ([u8; 4], u16) = ([224, 0, 0, 1], 5000);
@@ -41,13 +43,13 @@ type Res<T> = Result<T, Box<dyn std::error::Error>>;
 static WIFI_CONN: Mutex<Option<EspWifi>> = Mutex::new(None);
 
 struct Led<'a> {
-    pin_driver: PinDriver<'a, Gpio2, Output>,
+    pin_driver: PinDriver<'a, Output>,
     is_on: bool,
 }
 
-impl Led<'_> {
+impl<'a> Led<'a> {
     #[inline]
-    fn new(gpio2: Gpio2) -> Res<Self> {
+    fn new(gpio2: Gpio2<'a>) -> Res<Self> {
         let pin_driver = PinDriver::output(gpio2)?;
         let is_on = false;
         Ok(Led { pin_driver, is_on })
@@ -72,7 +74,7 @@ impl Led<'_> {
 
 #[inline]
 fn connect_to_wifi(led: &mut Led) -> Res<()> {
-    let modem = unsafe { WifiModem::new() };
+    let modem = unsafe { WifiModem::steal() };
     let esp_event_loop = EspEventLoop::take()?;
     let mut wifi = EspWifi::new(modem, esp_event_loop, None)?;
 

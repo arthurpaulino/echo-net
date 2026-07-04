@@ -4,7 +4,7 @@ Source code for embedding echo-net on an ESP32.
 
 # Build
 
-After [setting up a development environment](https://docs.esp-rs.org/book/installation/index.html),
+After [setting up a development environment](https://docs.espressif.com/projects/rust/book/getting-started/index.html),
 the project can be built with `cargo build`, but it requires the following env variables to be set:
 
 * `ECHONET_WIFI_SSID`
@@ -12,7 +12,7 @@ the project can be built with `cargo build`, but it requires the following env v
 
 # Flashing
 
-Flash your ESP32 with [`espflash`](https://docs.esp-rs.org/book/tooling/espflash.html).
+Flash your ESP32 with [`espflash`](https://docs.espressif.com/projects/rust/book/getting-started/tooling/espflash.html).
 
 We recommend `cargo-espflash`, which enables
 
